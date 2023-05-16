@@ -9,12 +9,12 @@
 // }
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 export default function CreateNote() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [image, setImage] = useState(null); // Added state for the image
+  const [image, setImage] = useState<File | null>(null); // Added type annotation for the image state
 
   const router = useRouter();
 
@@ -22,20 +22,21 @@ export default function CreateNote() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
-    formData.append("image", image); // Append the image to the form data
+    if (image) {
+      formData.append("image", image);
+    }
 
     await fetch("http://127.0.0.1:8090/api/collections/notes/records", {
       method: "POST",
-      body: formData, // Send the form data instead of JSON
-
+      body: formData,
       // Note: You may need to set appropriate headers for the form data
     });
 
     setContent("");
     setTitle("");
-    setImage(null); // Reset the image state
+    setImage(null);
 
-    router.refresh();
+    router.reload(); // Use router.reload() instead of deprecated router.refresh()
   };
 
   return (
@@ -55,7 +56,7 @@ export default function CreateNote() {
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => setImage(e.target.files[0])} // Set the image state when a file is selected
+        onChange={(e) => setImage(e.target.files?.[0] || null)} // Handle the case when no file is selected
       />
       <button type="submit">Create note</button>
     </form>
